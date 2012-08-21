@@ -1,3 +1,11 @@
+/*!
+ * Bootstrap Scroll Modal
+ * Version: 1.1
+ * Made for your convenience by @theericanderson.
+ * A variaton of only small piece of the insanely awesome
+ * Twitter Bootstrap (http://twitter.github.com/bootstrap).
+ */
+
 /* =========================================================
  * bootstrap-modal.js v2.0.4
  * http://twitter.github.com/bootstrap/javascript.html#modals
@@ -22,11 +30,10 @@
 
   "use strict"; // jshint ;_;
 
-
  /* MODAL CLASS DEFINITION
   * ====================== */
 
-  var Modal = function (content, options) {
+  var Modal = function ( content, options ) {
     this.options = options
     this.$element = $(content)
       .delegate('[data-dismiss="modal"]', 'click.dismiss.modal', $.proxy(this.hide, this))
@@ -44,8 +51,6 @@
         var that = this
           , e = $.Event('show')
 
-        this.$element.trigger(e)
-
         if (this.isShown || e.isDefaultPrevented()) return
 
         $('body').addClass('modal-open')
@@ -54,6 +59,7 @@
 
         escape.call(this)
         backdrop.call(this, function () {
+
           var transition = $.support.transition && that.$element.hasClass('fade')
 
           if (!that.$element.parent().length) {
@@ -76,7 +82,7 @@
         })
       }
 
-    , hide: function (e) {
+    , hide: function ( e ) {
         e && e.preventDefault()
 
         var that = this
@@ -135,10 +141,30 @@
       var doAnimate = $.support.transition && animate
 
       this.$backdrop = $('<div class="modal-backdrop ' + animate + '" />')
-        .appendTo(document.body)
+      if (!that.$element.parent().length) {
+          this.$backdrop.appendTo(document.body) //don't move modals dom position
+      } else {
+          this.$backdrop.insertBefore(this.$element)
+      }
+      
+      if (this.options.dynamic) {
+        this.$elementWrapper = $('<div class="modal-wrapper" />')
+          .prependTo(this.$backdrop)
+          .delegate('[data-dismiss="modal"]', 'click.dismiss.modal', $.proxy(this.hide, this))
+        this.$element.prependTo(this.$elementWrapper)
+      } else {
+        this.$element.prependTo(this.$backdrop)
+        .delegate('[data-dismiss="modal"]', 'click.dismiss.modal', $.proxy(this.hide, this))
+      }
+
+      $('body').css({ 'overflow' : 'hidden' })
 
       if (this.options.backdrop != 'static') {
-        this.$backdrop.click($.proxy(this.hide, this))
+        this.$backdrop.on('click', function(e){
+          if (e.target == e.delegateTarget) {
+            that.hide(e)
+          }
+        })
       }
 
       if (doAnimate) this.$backdrop[0].offsetWidth // force reflow
@@ -162,8 +188,10 @@
   }
 
   function removeBackdrop() {
+    this.$element.insertAfter(this.$backdrop)
     this.$backdrop.remove()
     this.$backdrop = null
+    $('body').css({ 'overflow' : 'auto' })
   }
 
   function escape() {
@@ -181,7 +209,7 @@
  /* MODAL PLUGIN DEFINITION
   * ======================= */
 
-  $.fn.modal = function (option) {
+  $.fn.modal = function ( option ) {
     return this.each(function () {
       var $this = $(this)
         , data = $this.data('modal')
